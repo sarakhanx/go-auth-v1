@@ -135,3 +135,11 @@ func Debug(c fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{"data": users})
 }
+
+func Signout(c fiber.Ctx) error {
+	token := c.Get("Authorization")
+	if token == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Missing authorization token"})
+	}
+	return c.JSON(fiber.Map{"message": "Signed Out!👋"})
+}

@@ -10,4 +10,5 @@ func SetupUser(app *fiber.App) {
 	app.Get("/debuguser", userControllers.Debug)
 	app.Post("/api/auth/signup", userControllers.Signup)
 	app.Post("/api/auth/signin", userControllers.Signin)
+	app.Post("/api/auth/signout", userControllers.Signout)
 }
