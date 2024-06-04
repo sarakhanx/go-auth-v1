@@ -11,4 +11,8 @@ CREATE TABLE IF NOT EXISTS Users (
 )
 `
 
-const SignupNewUser = `INSERT INTO Users(name, username, password, email, roles) VALUES($1, $2, $3, $4, $5)`
+const (
+	SignupNewUser   = `INSERT INTO Users(name, username, password, email, roles) VALUES($1, $2, $3, $4, $5)`
+	CheckUserExists = `SELECT username, email FROM users WHERE username = $1 OR email = $2;`
+	SigninUser      = `SELECT password  FROM Users WHERE username = $1;`
+)

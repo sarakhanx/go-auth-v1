@@ -7,5 +7,7 @@ import (
 
 func SetupUser(app *fiber.App) {
 	app.Get("/hifolks", userControllers.Helloworld)
+	app.Get("/debuguser", userControllers.Debug)
 	app.Post("/api/auth/signup", userControllers.Signup)
+	app.Post("/api/auth/signin", userControllers.Signin)
 }
