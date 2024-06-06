@@ -2,7 +2,6 @@ package userControllers
 
 import (
 	"context"
-	"log"
 	"strings"
 
 	"github.com/gofiber/fiber/v3"
@@ -15,15 +14,12 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func Helloworld(c fiber.Ctx) error {
-	return c.SendString("Hello, World 👋!")
-}
-
 func HashedPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 	return string(bytes), err
 }
 
+// NOTE -  signup
 func Signup(c fiber.Ctx) error {
 	conn := config.InitDB()
 
@@ -33,7 +29,7 @@ func Signup(c fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON("Invalid data in request")
 	}
-	//NOTE - check all data is not empty
+	//EXPLAIN - check all data is not empty
 	if strings.TrimSpace(data.Name) == "" ||
 		strings.TrimSpace(data.Username) == "" ||
 		strings.TrimSpace(data.Password) == "" ||
@@ -41,7 +37,7 @@ func Signup(c fiber.Ctx) error {
 		strings.TrimSpace(data.Roles) == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "All fields are required"})
 	}
-	//NOTE - check email valiadte
+	//EXPLAIN - check email valiadte
 	if !validate.IsValidEmail(data.Email) {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid email"})
 	}
@@ -50,7 +46,7 @@ func Signup(c fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Password must be at least 8 characters"})
 	}
 
-	//NOTE - check if user exists
+	//EXPLAIN - check if user exists
 	var existingUser models.User
 	err = conn.QueryRow(context.Background(), queries.CheckUserExists, data.Username, data.Email).Scan(&existingUser.Username, &existingUser.Email)
 	if err == nil {
@@ -59,12 +55,12 @@ func Signup(c fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error while checking existing user"})
 	}
 
-	//NOTE - encode password
+	//EXPLAIN - encode password
 	hashedPassword, err := HashedPassword(data.Password)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON("Error while hashing password")
 	}
-	//NOTE - start query
+	//EXPLAIN - start query
 	_, err = conn.Exec(context.Background(), queries.SignupNewUser, data.Name, data.Username, hashedPassword, data.Email, data.Roles)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON("Error while create user")
@@ -72,6 +68,7 @@ func Signup(c fiber.Ctx) error {
 	return c.JSON(data)
 }
 
+// NOTE - signin
 func Signin(c fiber.Ctx) error {
 	conn := config.InitDB()
 	defer conn.Close(context.Background())
@@ -81,7 +78,7 @@ func Signin(c fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON("Invalid data in request")
 	}
 
-	//NOTE - check username and password
+	//EXPLAIN - check username and password
 	var hashedPassword string
 	err = conn.QueryRow(context.Background(), queries.SigninUser, data.Username).Scan(&hashedPassword)
 	if err != nil {
@@ -90,7 +87,7 @@ func Signin(c fiber.Ctx) error {
 		}
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Error while checking user"})
 	}
-	//NOTE - check password
+	//EXPLAIN - check password
 	if err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(data.Password)); err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON("Incorrect password")
 	}
@@ -105,37 +102,7 @@ func Signin(c fiber.Ctx) error {
 	return c.JSON(fiber.Map{"message": "Signin successful", "data": data, "token": token, "hashed": hashedPassword})
 }
 
-func Debug(c fiber.Ctx) error {
-	conn := config.InitDB()
-	defer conn.Close(context.Background())
-
-	rows, err := conn.Query(context.Background(), "select * from users;")
-	if err != nil {
-		log.Println("Error executing query:", err)
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error executing query"})
-	}
-	defer rows.Close()
-
-	var users []models.User
-
-	for rows.Next() {
-		var user models.User
-		err = rows.Scan(&user.Id, &user.Name, &user.Username, &user.Password, &user.Email, &user.Roles)
-		if err != nil {
-			log.Println("Error scanning row:", err)
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error scanning row"})
-		}
-		users = append(users, user)
-	}
-
-	if err = rows.Err(); err != nil {
-		log.Println("Error iterating rows:", err)
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Error iterating rows"})
-	}
-
-	return c.JSON(fiber.Map{"data": users})
-}
-
+// NOTE - Signout
 func Signout(c fiber.Ctx) error {
 	token := c.Get("Authorization")
 	if token == "" {
