@@ -20,6 +20,7 @@ func main() {
 
 	// Route
 	userRouter.SetupUser(app)
+	userRouter.PdfControllers(app)
 
 	log.Println("Server is running on port 8080...")
 	log.Fatal(app.Listen(":8080"))

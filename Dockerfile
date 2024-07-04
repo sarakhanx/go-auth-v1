@@ -7,25 +7,30 @@ WORKDIR /app
 # Copy the Go modules files
 COPY go.mod go.sum ./
 
-# Download dependencies
+# Download dependencies (if want to use the same like npm install need to use go mod download)
 RUN go mod download
 
 # Copy the source code
-COPY . .
+COPY ./ ./
 
 # Build the Go application
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o app .
+RUN CGO_ENABLED=0 GOOS=linux go build -o app .
+
+
 
 # Use a minimal base image for the final build
 FROM alpine:latest
+
+# Install necessary dependencies
+RUN apk --no-cache add ca-certificates
 
 # Set the working directory
 WORKDIR /app
 
 # Copy the built executable from the builder stage
-COPY --from=builder /app/app .
+COPY --from=builder /app/app ./
 
-COPY .env .
+COPY ./.env ./
 
 # Expose the port the application runs on
 EXPOSE 8080
