@@ -21,20 +21,30 @@ func PdfGenerator1(data models.PDFRequest, filename string) ([]byte, error) {
 	pdf := fpdf.New("P", "mm", "A4", "")
 	//add page
 	pdf.AddPage()
-	//Header
+	// Set font and colors for the table headers
 	pdf.SetFont("Arial", "B", 16)
-	pdf.SetTextColor(88, 57, 39)
-	pdf.Cell(40, 10, data.Title)
-	pdf.Ln(10)
-	//Content
-	pdf.SetFont("Arial", "", 8)
-	pdf.SetTextColor(0, 0, 0)
-	pdf.MultiCell(0, 10, data.Content, "", "", false)
-	pdf.Ln(2)
-	//Author
-	pdf.SetFont("Arial", "", 8)
-	pdf.SetTextColor(0, 0, 0)
-	pdf.Cell(40, 10, data.Author)
+	pdf.SetFillColor(200, 200, 200) // Light grey background
+	pdf.SetTextColor(0, 0, 0)       // Black text
+	pdf.SetDrawColor(0, 0, 0)       // Black border
+
+	// สร้าง Table headers
+	headers := []string{"Title", "Content", "Author"}
+	for _, header := range headers {
+		pdf.CellFormat(60, 10, header, "1", 0, "C", true, 0, "")
+	}
+	pdf.Ln(-1)
+
+	// Set font and colors for the table content
+	pdf.SetFont("Arial", "", 12)
+	pdf.SetFillColor(255, 255, 255) // White background
+	pdf.SetTextColor(0, 0, 0)       // Black text
+	pdf.SetDrawColor(0, 0, 0)       // Black border
+
+	// Table content
+	pdf.CellFormat(60, 10, data.Title, "1", 0, "C", true, 0, "")
+	pdf.CellFormat(60, 10, data.Content, "1", 1, "C", true, 0, "")
+	pdf.CellFormat(60, 10, data.Author, "1", 0, "C", true, 0, "")
+	pdf.Ln(-1)
 
 	var buf bytes.Buffer
 	err = pdf.Output(&buf)

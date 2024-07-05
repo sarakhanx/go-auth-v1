@@ -35,7 +35,7 @@ func PdfHandler(c fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON("Invalid data in request")
 	}
 	directory := pdfDir
-	var filename string = data.Title + time.Now().Format("20060102_150405")
+	var filename string = time.Now().Format("20060102_150405") + data.Title
 	filepath := directory + filename + ".pdf"
 
 	pdfData, err := fpdfConfig.PdfGenerator1(data, filepath)
