@@ -1,4 +1,4 @@
-package config
+package db_config
 
 import (
 	"context"

@@ -1,16 +1,16 @@
-package userControllers
+package auth_controllers
 
 import (
 	"context"
 	"log"
 
 	"github.com/gofiber/fiber/v3"
-	"github.com/sarakhanx/go-auth-v1/config"
+	"github.com/sarakhanx/go-auth-v1/config/db_config"
 	"github.com/sarakhanx/go-auth-v1/models"
 )
 
 func Debug(c fiber.Ctx) error {
-	conn := config.InitDB()
+	conn := db_config.InitDB()
 	defer conn.Close(context.Background())
 
 	rows, err := conn.Query(context.Background(), "select * from users;")

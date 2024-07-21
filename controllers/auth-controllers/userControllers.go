@@ -1,4 +1,4 @@
-package userControllers
+package auth_controllers
 
 import (
 	"context"
@@ -6,22 +6,17 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 	"github.com/jackc/pgx/v4"
-	"github.com/sarakhanx/go-auth-v1/config"
-	validate "github.com/sarakhanx/go-auth-v1/middlewares"
+	"github.com/sarakhanx/go-auth-v1/config/db_config"
+	"github.com/sarakhanx/go-auth-v1/middlewares/bcrypt_config"
+	"github.com/sarakhanx/go-auth-v1/middlewares/validate"
 	"github.com/sarakhanx/go-auth-v1/models"
 	"github.com/sarakhanx/go-auth-v1/queries"
-	"github.com/sarakhanx/go-auth-v1/utils"
-	"golang.org/x/crypto/bcrypt"
+	"github.com/sarakhanx/go-auth-v1/utils/jwt"
 )
-
-func HashedPassword(password string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
-	return string(bytes), err
-}
 
 // NOTE -  signup
 func Signup(c fiber.Ctx) error {
-	conn := config.InitDB()
+	conn := db_config.InitDB()
 
 	var data models.User
 
@@ -56,7 +51,7 @@ func Signup(c fiber.Ctx) error {
 	}
 
 	//EXPLAIN - encode password
-	hashedPassword, err := HashedPassword(data.Password)
+	hashedPassword, err := bcrypt_config.HashedPassword(data.Password)
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON("Error while hashing password")
 	}
@@ -70,7 +65,7 @@ func Signup(c fiber.Ctx) error {
 
 // NOTE - signin
 func Signin(c fiber.Ctx) error {
-	conn := config.InitDB()
+	conn := db_config.InitDB()
 	defer conn.Close(context.Background())
 	var data models.SigninUser
 	err := c.Bind().Body(&data)
@@ -88,11 +83,11 @@ func Signin(c fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Error while checking user"})
 	}
 	//EXPLAIN - check password
-	if err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(data.Password)); err != nil {
+	if err := bcrypt_config.ComparePasswords(hashedPassword, data.Password); err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON("Incorrect password")
 	}
 
-	token, err := utils.GenerateToken(data.Username)
+	token, err := jwt.GenerateToken(data.Username)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Internal server error while generating token"})
 	}

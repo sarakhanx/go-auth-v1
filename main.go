@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/gofiber/fiber/v3"
-	"github.com/sarakhanx/go-auth-v1/config"
+	"github.com/sarakhanx/go-auth-v1/config/db_config"
 	userRouter "github.com/sarakhanx/go-auth-v1/routes"
 )
 
@@ -13,7 +13,7 @@ func main() {
 	// Initialize a new Fiber app
 	app := fiber.New()
 	// Database connection
-	conn := config.InitDB()
+	conn := db_config.InitDB()
 	defer conn.Close(context.Background())
 	//Debug if server is starting
 	log.Println("Server is starting...")
